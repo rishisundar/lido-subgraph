@@ -52,6 +52,8 @@ import {
   SharesTransfer,
   SharesBurn,
   Settings,
+  HourlyUsageSnapshot,
+  DailyUsageSnapshot,
 } from '../generated/schema'
 
 import { loadLidoContract, loadNosContract } from './contracts'
@@ -290,6 +292,8 @@ export function handleTransfer(event: Transfer): void {
     if (!holderExists) {
       stats.uniqueHolders = stats.uniqueHolders!.plus(ONE)
       stats.uniqueAnytimeHolders = stats.uniqueAnytimeHolders!.plus(ONE)
+      updateHourlyStats(event)
+      updateDailyStats(event)
     } else if (!fromZeros && entity.balanceAfterDecrease!.equals(ZERO)) {
       // Mints don't have balanceAfterDecrease
 
@@ -795,4 +799,43 @@ export function handleTestnetBlock(block: ethereum.Block): void {
     totals.totalPooledEther = realPooledEther
     totals.save()
   }
+}
+
+export function updateHourlyStats(event: ethereum.Event): HourlyUsageSnapshot {
+  let timestamp = event.block.timestamp.toI32()
+  let hourIndex = timestamp / 3600
+  let dayID = timestamp / 86400
+  let hourID = dayID.toString()
+    .concat('-')
+    .concat(hourIndex.toString())
+  let hourlyUsageSnapshot = HourlyUsageSnapshot.load(hourID)
+  if (hourlyUsageSnapshot === null) {
+    hourlyUsageSnapshot = new HourlyUsageSnapshot(hourID)
+    hourlyUsageSnapshot.txCount = ZERO
+    hourlyUsageSnapshot.tvlUSD = ZERO
+    hourlyUsageSnapshot.activeUsers = ZERO
+  }
+  hourlyUsageSnapshot.txCount.plus(ONE)
+  hourlyUsageSnapshot.tvlUSD.plus(event.transaction.value)
+  hourlyUsageSnapshot.activeUsers.plus(ONE)
+  hourlyUsageSnapshot.save()
+  return hourlyUsageSnapshot as HourlyUsageSnapshot 
+}
+
+export function updateDailyStats(event: ethereum.Event): DailyUsageSnapshot {
+  let timestamp = event.block.timestamp.toI32()
+  let dayID = timestamp / 86400
+  let dailyUsageSnapshot = DailyUsageSnapshot.load(dayID.toString())
+  if (dailyUsageSnapshot === null) {
+    dailyUsageSnapshot = new DailyUsageSnapshot(dayID.toString())
+    dailyUsageSnapshot.txCount = ZERO
+    dailyUsageSnapshot.tvlUSD = ZERO
+    dailyUsageSnapshot.activeUsers = ZERO
+  }
+  dailyUsageSnapshot.date = dayID
+  dailyUsageSnapshot.txCount.plus(ONE)
+  dailyUsageSnapshot.tvlUSD.plus(event.transaction.value)
+  dailyUsageSnapshot.activeUsers.plus(ONE)
+  dailyUsageSnapshot.save()
+  return dailyUsageSnapshot as DailyUsageSnapshot 
 }
