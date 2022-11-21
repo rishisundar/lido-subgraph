@@ -145,6 +145,7 @@ type Totals @entity {
   id: ID!
 
   totalPooledEther: BigInt!
+  # tvlUSD: BigDecimal!
   totalShares: BigInt!
 }
 
@@ -638,3 +639,43 @@ type PauseIntentValidityPeriodBlocksChange @entity(immutable: true) {
   blockTime: BigInt!
   transactionHash: Bytes!
 }
+
+#Reference: https://thegraph.com/docs/en/developing/creating-a-subgraph/
+
+type HourlyUsageSnapshot @entity {
+  # format: <date>-<timestamp>.
+  id: ID!
+  # unix timestamp for start of hour.
+  periodStartUnix: Int!
+  # total value locked as USD.
+  tvlUSD: BigInt!
+  # Transaction Count.
+  txCount: BigInt!
+  # Active user count for the hour.
+  activeUsers: BigInt!
+}
+
+type DailyUsageSnapshot @entity {
+  # timestamp rounded to current day by dividing by 86400.
+  id: ID!
+  # timestamp rounded to current day by dividing by 86400.
+  date: Int!
+  # total value locked as USD.
+  tvlUSD: BigInt!
+  # Transaction Count.
+  txCount: BigInt!
+  # Active user count for the day.
+  activeUsers: BigInt!
+}
+
+# type Protocol @entity {
+#   id: ID!
+#   # Total transaction count since the beginning
+#   txCount: BigInt!
+#   # Total tvl in USD since the beginning
+#   tvlUSD: BigDecimal!
+#   # hourly snapshots of protocol data
+#   hourlyUsage: [HourlyUsageSnapshot!]! @derivedFrom(field: "protocol")
+#   # daily snapshots of protocol data
+#   dailyUsage: [DailyUsageSnapshot!]! @derivedFrom(field: "protocol")
+# }
