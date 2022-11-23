@@ -54,6 +54,7 @@ import {
   Settings,
   HourlyUsageSnapshot,
   DailyUsageSnapshot,
+  Protocol,
 } from '../generated/schema'
 
 import { loadLidoContract, loadNosContract } from './contracts'
@@ -64,6 +65,7 @@ import {
   ONE,
   CALCULATION_UNIT,
   ZERO_ADDRESS,
+  ZERO_BIG_DECIMAL,
 } from './constants'
 
 import { wcKeyCrops } from './wcKeyCrops'
@@ -285,21 +287,29 @@ export function handleTransfer(event: Transfer): void {
 
     if (!stats) {
       stats = new Stats('')
-      stats.uniqueHolders = ZERO
+      stats.uniqueHolders = ZERO //Stats get updated at some time. That's why there are two BigInts -> In which case?
       stats.uniqueAnytimeHolders = ZERO
     }
 
+    let protocol = Protocol.load("Lido")
+
+    if(!protocol) {
+      protocol = new Protocol("Lido")
+      protocol.tvlUSD = ZERO_BIG_DECIMAL
+    }
+
+    let isUniqueActiveUser = false
     if (!holderExists) {
       stats.uniqueHolders = stats.uniqueHolders!.plus(ONE)
       stats.uniqueAnytimeHolders = stats.uniqueAnytimeHolders!.plus(ONE)
-      updateHourlyStats(event)
-      updateDailyStats(event)
+      isUniqueActiveUser = true
     } else if (!fromZeros && entity.balanceAfterDecrease!.equals(ZERO)) {
       // Mints don't have balanceAfterDecrease
 
       stats.uniqueHolders = stats.uniqueHolders!.minus(ONE)
     }
-
+    updateHourlyStats(event, isUniqueActiveUser)
+    updateDailyStats(event, isUniqueActiveUser)
     stats.save()
   }
 }
@@ -801,41 +811,57 @@ export function handleTestnetBlock(block: ethereum.Block): void {
   }
 }
 
-export function updateHourlyStats(event: ethereum.Event): HourlyUsageSnapshot {
+export function updateHourlyStats(event: ethereum.Event, isUniqueActiveUser: boolean): HourlyUsageSnapshot {
   let timestamp = event.block.timestamp.toI32()
   let hourIndex = timestamp / 3600
   let dayID = timestamp / 86400
   let hourID = dayID.toString()
     .concat('-')
     .concat(hourIndex.toString())
+  let protocol = Protocol.load("Lido")
+  if (protocol === null) {
+    protocol = new Protocol("Lido")
+  }
+  protocol.save()
   let hourlyUsageSnapshot = HourlyUsageSnapshot.load(hourID)
   if (hourlyUsageSnapshot === null) {
     hourlyUsageSnapshot = new HourlyUsageSnapshot(hourID)
     hourlyUsageSnapshot.txCount = ZERO
     hourlyUsageSnapshot.tvlUSD = ZERO
     hourlyUsageSnapshot.activeUsers = ZERO
+    hourlyUsageSnapshot.protocol = protocol.id
   }
   hourlyUsageSnapshot.txCount.plus(ONE)
   hourlyUsageSnapshot.tvlUSD.plus(event.transaction.value)
-  hourlyUsageSnapshot.activeUsers.plus(ONE)
+  if(isUniqueActiveUser) {
+    hourlyUsageSnapshot.activeUsers.plus(ONE)
+  }
   hourlyUsageSnapshot.save()
   return hourlyUsageSnapshot as HourlyUsageSnapshot 
 }
 
-export function updateDailyStats(event: ethereum.Event): DailyUsageSnapshot {
+export function updateDailyStats(event: ethereum.Event, isUniqueActiveUser: boolean): DailyUsageSnapshot {
   let timestamp = event.block.timestamp.toI32()
   let dayID = timestamp / 86400
   let dailyUsageSnapshot = DailyUsageSnapshot.load(dayID.toString())
+  let protocol = Protocol.load("Lido")
+  if (protocol === null) {
+    protocol = new Protocol("Lido")
+  }
+  protocol.save()
   if (dailyUsageSnapshot === null) {
     dailyUsageSnapshot = new DailyUsageSnapshot(dayID.toString())
     dailyUsageSnapshot.txCount = ZERO
     dailyUsageSnapshot.tvlUSD = ZERO
     dailyUsageSnapshot.activeUsers = ZERO
+    dailyUsageSnapshot.protocol = protocol.id
   }
   dailyUsageSnapshot.date = dayID
   dailyUsageSnapshot.txCount.plus(ONE)
   dailyUsageSnapshot.tvlUSD.plus(event.transaction.value)
-  dailyUsageSnapshot.activeUsers.plus(ONE)
+  if(isUniqueActiveUser) {
+    dailyUsageSnapshot.activeUsers.plus(ONE)
+  }
   dailyUsageSnapshot.save()
   return dailyUsageSnapshot as DailyUsageSnapshot 
 }
