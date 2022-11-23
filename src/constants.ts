@@ -1,4 +1,4 @@
-import { BigInt, Address, TypedMap } from '@graphprotocol/graph-ts'
+import { BigInt, Address, TypedMap, BigDecimal } from '@graphprotocol/graph-ts'
 import { dataSource } from '@graphprotocol/graph-ts'
 
 import { Settings } from '../generated/schema'
@@ -12,6 +12,7 @@ Units
 
 export const ZERO = BigInt.fromI32(0)
 export const ONE = BigInt.fromI32(1)
+export const ZERO_BIG_DECIMAL = new BigDecimal(ZERO)
 
 export const CALCULATION_UNIT = BigInt.fromI32(10000)
 

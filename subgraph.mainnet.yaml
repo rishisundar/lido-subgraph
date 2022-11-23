@@ -9,7 +9,7 @@ dataSources:
       address: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'
       abi: Lido
       # Updated start block to somewhat new block to skip processing of all blocks since Lido's inception
-      startBlock: 16019721
+      startBlock: 16028337
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -28,7 +28,7 @@ dataSources:
         - ELRewardsVaultSet
         - ELRewardsWithdrawalLimitSet
         - ProtocolContactsSet
-        # - Protocol
+        - Protocol
         - DailyUsageSnapshot
         - HourlyUsageSnapshot
         - StakingLimitRemove
@@ -91,7 +91,7 @@ dataSources:
     source:
       address: '0x442af784A788A5bd6F42A01Ebe9F287a871243fb'
       abi: LidoOracle
-      startBlock: 16019721
+      startBlock: 16028337
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -148,7 +148,7 @@ dataSources:
     source:
       address: '0x55032650b14df07b85bF18A3a3eC8E0Af2e028d5'
       abi: NodeOperatorsRegistry
-      startBlock: 16019721
+      startBlock: 16028337
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -187,7 +187,7 @@ dataSources:
     source:
       address: '0x2e59A20f205bB85a89C53f1936454680651E618e'
       abi: Voting
-      startBlock: 16019721
+      startBlock: 16028337
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
