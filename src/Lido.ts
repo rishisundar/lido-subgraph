@@ -832,6 +832,7 @@ export function updateHourlyStats(event: ethereum.Event, isUniqueActiveUser: boo
     hourlyUsageSnapshot.activeUsers = ZERO
     hourlyUsageSnapshot.protocol = protocol.id
   }
+  hourlyUsageSnapshot.periodStartUnix=hourIndex
   hourlyUsageSnapshot.txCount.plus(ONE)
   hourlyUsageSnapshot.tvlUSD.plus(event.transaction.value)
   if(isUniqueActiveUser) {
