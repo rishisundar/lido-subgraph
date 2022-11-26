@@ -1,3 +1,6 @@
-graph create --node http://127.0.0.1:8020 lidofinance/lido
+yarn
+yarn codegen
+yarn build
+yarn remove-local
 yarn create-local
-yarn build && yarn deploy-local
+yarn deploy-local

@@ -42,7 +42,7 @@ chmod +x ./startNode.sh
 
 #Creating and deploying the subgraph
 yarn codegen
-graph create --node http://127.0.0.1:8020 lidofinance/lido
-yarn create-local
 yarn build
+yarn remove-local
+yarn create-local
 yarn deploy-local
