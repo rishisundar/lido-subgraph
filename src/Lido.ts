@@ -821,6 +821,7 @@ export function updateHourlyStats(event: ethereum.Event, isUniqueActiveUser: boo
   let protocol = Protocol.load("Lido")
   if (protocol === null) {
     protocol = new Protocol("Lido")
+    protocol.tvlUSD = ZERO_BIG_DECIMAL
   }
   protocol.save()
   let hourlyUsageSnapshot = HourlyUsageSnapshot.load(hourID)
@@ -847,6 +848,7 @@ export function updateDailyStats(event: ethereum.Event, isUniqueActiveUser: bool
   let protocol = Protocol.load("Lido")
   if (protocol === null) {
     protocol = new Protocol("Lido")
+    protocol.tvlUSD = ZERO_BIG_DECIMAL
   }
   protocol.save()
   if (dailyUsageSnapshot === null) {
