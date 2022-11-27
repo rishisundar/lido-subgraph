@@ -66,6 +66,8 @@ import {
   CALCULATION_UNIT,
   ZERO_ADDRESS,
   ZERO_BIG_DECIMAL,
+  HOUR_IN_SECONDS,
+  DAY_IN_SECONDS
 } from './constants'
 
 import { wcKeyCrops } from './wcKeyCrops'
@@ -287,29 +289,20 @@ export function handleTransfer(event: Transfer): void {
 
     if (!stats) {
       stats = new Stats('')
-      stats.uniqueHolders = ZERO //Stats get updated at some time. That's why there are two BigInts -> In which case?
+      stats.uniqueHolders = ZERO
       stats.uniqueAnytimeHolders = ZERO
     }
 
-    let protocol = Protocol.load("Lido")
-
-    if(!protocol) {
-      protocol = new Protocol("Lido")
-      protocol.tvlUSD = ZERO_BIG_DECIMAL
-    }
-
-    let isUniqueActiveUser = false
     if (!holderExists) {
       stats.uniqueHolders = stats.uniqueHolders!.plus(ONE)
       stats.uniqueAnytimeHolders = stats.uniqueAnytimeHolders!.plus(ONE)
-      isUniqueActiveUser = true
     } else if (!fromZeros && entity.balanceAfterDecrease!.equals(ZERO)) {
       // Mints don't have balanceAfterDecrease
 
       stats.uniqueHolders = stats.uniqueHolders!.minus(ONE)
     }
-    updateHourlyStats(event, isUniqueActiveUser)
-    updateDailyStats(event, isUniqueActiveUser)
+    updateHourlyUsageStats(event, !holderExists)
+    updateDailyUsageStats(event, !holderExists)
     stats.save()
   }
 }
@@ -318,6 +311,7 @@ export function handleApproval(event: Approval): void {
   let entity = new LidoApproval(
     event.transaction.hash.toHex() + '-' + event.logIndex.toString()
   )
+  // TODO: update usage stats
 
   entity.owner = event.params.owner
   entity.spender = event.params.spender
@@ -417,6 +411,7 @@ export function handleSubmit(event: Submitted): void {
     totals.totalShares = ZERO
   }
 
+  //TODO: update usage stats
   entity.sender = event.params.sender
   entity.amount = event.params.amount
   entity.referral = event.params.referral
@@ -492,6 +487,7 @@ export function handleWithdrawal(event: Withdrawal): void {
   let entity = new LidoWithdrawal(
     event.transaction.hash.toHex() + '-' + event.logIndex.toString()
   )
+  //TODO: Handle usage stats
 
   entity.sender = event.params.sender
   entity.tokenAmount = event.params.tokenAmount
@@ -519,6 +515,7 @@ export function handleBeaconValidatorsUpdated(
   // WARNING: Will break handler without event!
   _event: BeaconValidatorsUpdated
 ): void {
+  // TODO: Check this and see if the same can be used for getting ETH vs USD price
   let contract = loadLidoContract()
   let realPooledEther = contract.getTotalPooledEther()
 
@@ -707,6 +704,8 @@ export function handleProtocolContactsSet(
   settings.oracle = event.params.oracle
   settings.treasury = event.params.treasury
   settings.save()
+
+  getProtocol()
 }
 
 export function handleStakingLimitRemoved(event: StakingLimitRemoved): void {
@@ -811,60 +810,96 @@ export function handleTestnetBlock(block: ethereum.Block): void {
   }
 }
 
-export function updateHourlyStats(event: ethereum.Event, isUniqueActiveUser: boolean): HourlyUsageSnapshot {
-  let timestamp = event.block.timestamp.toI32()
-  let hourIndex = timestamp / 3600
-  let dayID = timestamp / 86400
-  let hourID = dayID.toString()
-    .concat('-')
-    .concat(hourIndex.toString())
-  let protocol = Protocol.load("Lido")
+export function getProtocol(): Protocol {
+  let protocol = Protocol.load('')
   if (protocol === null) {
-    protocol = new Protocol("Lido")
+    protocol = new Protocol('')
     protocol.tvlUSD = ZERO_BIG_DECIMAL
   }
   protocol.save()
+  return protocol
+}
+
+export function getHourlyUsageSnapshot(event: ethereum.Event): HourlyUsageSnapshot {
+  let blockTimestamp = event.block.timestamp.toI32()
+  let hourIndex = blockTimestamp / HOUR_IN_SECONDS, dayID = blockTimestamp / DAY_IN_SECONDS
+  let hourID = dayID.toString().concat("-").concat(hourIndex.toString())
+
   let hourlyUsageSnapshot = HourlyUsageSnapshot.load(hourID)
   if (hourlyUsageSnapshot === null) {
     hourlyUsageSnapshot = new HourlyUsageSnapshot(hourID)
-    hourlyUsageSnapshot.txCount = ZERO
+    hourlyUsageSnapshot.protocol = getProtocol().id
+    hourlyUsageSnapshot.periodStartUnix = hourIndex
     hourlyUsageSnapshot.tvlUSD = ZERO
-    hourlyUsageSnapshot.activeUsers = ZERO
-    hourlyUsageSnapshot.protocol = protocol.id
+    hourlyUsageSnapshot.txCount = ZERO
+    hourlyUsageSnapshot.activeUsersCount = ZERO
   }
-  hourlyUsageSnapshot.periodStartUnix=hourIndex
-  hourlyUsageSnapshot.txCount.plus(ONE)
-  hourlyUsageSnapshot.tvlUSD.plus(event.transaction.value)
-  if(isUniqueActiveUser) {
-    hourlyUsageSnapshot.activeUsers.plus(ONE)
-  }
+
   hourlyUsageSnapshot.save()
-  return hourlyUsageSnapshot as HourlyUsageSnapshot 
+  return hourlyUsageSnapshot
 }
 
-export function updateDailyStats(event: ethereum.Event, isUniqueActiveUser: boolean): DailyUsageSnapshot {
-  let timestamp = event.block.timestamp.toI32()
-  let dayID = timestamp / 86400
-  let dailyUsageSnapshot = DailyUsageSnapshot.load(dayID.toString())
-  let protocol = Protocol.load("Lido")
-  if (protocol === null) {
-    protocol = new Protocol("Lido")
-    protocol.tvlUSD = ZERO_BIG_DECIMAL
-  }
-  protocol.save()
+export function getDailyUsageSnapshot(event: ethereum.Event): DailyUsageSnapshot {
+  let blockTimestamp = event.block.timestamp.toI32()
+  let date = (blockTimestamp / DAY_IN_SECONDS)
+  let dailyUsageSnapshot = DailyUsageSnapshot.load(date.toString())
   if (dailyUsageSnapshot === null) {
-    dailyUsageSnapshot = new DailyUsageSnapshot(dayID.toString())
-    dailyUsageSnapshot.txCount = ZERO
+    dailyUsageSnapshot = new DailyUsageSnapshot(date.toString())
+    dailyUsageSnapshot.protocol = getProtocol().id
+    dailyUsageSnapshot.date = date
     dailyUsageSnapshot.tvlUSD = ZERO
-    dailyUsageSnapshot.activeUsers = ZERO
-    dailyUsageSnapshot.protocol = protocol.id
+    dailyUsageSnapshot.txCount = ZERO
+    dailyUsageSnapshot.activeUsersCount = ZERO
   }
-  dailyUsageSnapshot.date = dayID
+
+  dailyUsageSnapshot.save()
+  return dailyUsageSnapshot
+}
+
+export function updateActiveUniqueUser(event: ethereum.Event) {
+  let hourlyUsageSnapshot = getHourlyUsageSnapshot(event)
+  hourlyUsageSnapshot.activeUsersCount.plus(ONE)
+  hourlyUsageSnapshot.save()
+
+  let dailyUsageSnapshot = getDailyUsageSnapshot(event)
+  dailyUsageSnapshot.activeUsersCount.plus(ONE)
+  dailyUsageSnapshot.save()
+}
+
+export function updateTransactionCount(event: ethereum.Event) {
+  let hourlyUsageSnapshot = getHourlyUsageSnapshot(event)
+  hourlyUsageSnapshot.txCount.plus(ONE)
+  hourlyUsageSnapshot.save()
+
+  let dailyUsageSnapshot = getDailyUsageSnapshot(event)
   dailyUsageSnapshot.txCount.plus(ONE)
+  dailyUsageSnapshot.save()
+}
+
+export function updateTVLUSD(event: ethereum.Event) {
+  
+}
+
+// TODO: Check and remove this method
+export function updateHourlyUsageStats(event: ethereum.Event, isUniqueActiveUser: boolean) {
+  let hourlyUsageSnapshot = getHourlyUsageSnapshot(event)
+  hourlyUsageSnapshot.txCount.plus(ONE)
+  // TODO: Update tvlUSD Logic
+  hourlyUsageSnapshot.tvlUSD.plus(event.transaction.value)
+  if(isUniqueActiveUser) {
+    hourlyUsageSnapshot.activeUsersCount.plus(ONE)
+  }
+  hourlyUsageSnapshot.save()
+}
+
+// TODO: Check and remove this method
+export function updateDailyUsageStats(event: ethereum.Event, isUniqueActiveUser: boolean) {
+  let dailyUsageSnapshot = getDailyUsageSnapshot(event)
+  dailyUsageSnapshot.txCount.plus(ONE)
+  // TODO: Update tvlUSD Logic
   dailyUsageSnapshot.tvlUSD.plus(event.transaction.value)
   if(isUniqueActiveUser) {
-    dailyUsageSnapshot.activeUsers.plus(ONE)
+    dailyUsageSnapshot.activeUsersCount.plus(ONE)
   }
   dailyUsageSnapshot.save()
-  return dailyUsageSnapshot as DailyUsageSnapshot 
 }

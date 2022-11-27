@@ -13,7 +13,8 @@ Units
 export const ZERO = BigInt.fromI32(0)
 export const ONE = BigInt.fromI32(1)
 export const ZERO_BIG_DECIMAL = new BigDecimal(ZERO)
-
+export const HOUR_IN_SECONDS = 3600 //60 * 60
+export const DAY_IN_SECONDS = 86400 //24 * 60 * 60 
 export const CALCULATION_UNIT = BigInt.fromI32(10000)
 
 // 1 ETH in WEI
