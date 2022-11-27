@@ -6,7 +6,7 @@ dataSources:
     name: Lido
     network: mainnet
     source:
-      address: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'
+      address: "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84"
       abi: Lido
       startBlock: 11473216
     mapping:
@@ -88,7 +88,7 @@ dataSources:
     name: LidoOracle
     network: mainnet
     source:
-      address: '0x442af784A788A5bd6F42A01Ebe9F287a871243fb'
+      address: "0x442af784A788A5bd6F42A01Ebe9F287a871243fb"
       abi: LidoOracle
       startBlock: 11473216
     mapping:
@@ -145,7 +145,7 @@ dataSources:
     name: NodeOperatorsRegistry
     network: mainnet
     source:
-      address: '0x55032650b14df07b85bF18A3a3eC8E0Af2e028d5'
+      address: "0x55032650b14df07b85bF18A3a3eC8E0Af2e028d5"
       abi: NodeOperatorsRegistry
       startBlock: 11473216
     mapping:
@@ -184,7 +184,7 @@ dataSources:
     name: Voting
     network: mainnet
     source:
-      address: '0x2e59A20f205bB85a89C53f1936454680651E618e'
+      address: "0x2e59A20f205bB85a89C53f1936454680651E618e"
       abi: Voting
       startBlock: 11473216
     mapping:
@@ -224,7 +224,7 @@ dataSources:
     name: Easytrack
     network: mainnet
     source:
-      address: '0xF0211b7660680B49De1A7E9f25C65660F0a13Fea'
+      address: "0xF0211b7660680B49De1A7E9f25C65660F0a13Fea"
       abi: Easytrack
       startBlock: 13676720
     mapping:
@@ -278,7 +278,7 @@ dataSources:
     name: DepositSecurityModule
     network: mainnet
     source:
-      address: '0xDb149235B6F40dC08810AA69869783Be101790e7'
+      address: "0xDb149235B6F40dC08810AA69869783Be101790e7"
       abi: DepositSecurityModule
       startBlock: 13492688
     mapping:
@@ -321,3 +321,31 @@ dataSources:
         - event: PauseIntentValidityPeriodBlocksChanged(uint256)
           handler: handlePauseIntentValidityPeriodBlocksChanged
       file: ./src/DepositSecurityModule.ts
+  - kind: ethereum
+    name: ChainlinkPriceFeed
+    network: mainnet
+    source:
+      address: "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419"
+      abi: ChainlinkPriceFeed
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - AnswerUpdated
+        - NewRound
+        - OwnershipTransferRequested
+        - OwnershipTransferred
+      abis:
+        - name: ChainlinkPriceFeed
+          file: ./abis/ChainlinkPriceFeed.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdated
+        - event: NewRound(indexed uint256,indexed address,uint256)
+          handler: handleNewRound
+        - event: OwnershipTransferRequested(indexed address,indexed address)
+          handler: handleOwnershipTransferRequested
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+      file: ./src/chainlink-price-feed.ts

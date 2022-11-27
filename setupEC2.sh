@@ -40,9 +40,7 @@ cd ..
 cd ./graph-node/docker/
 chmod +x ./startNode.sh
 
-#Creating and deploying the subgraph
+#adding Chainlink Contract as data source from contract address
+graph add "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419" --contract-name "ChainlinkPriceFeed" "./subgraph.mainnet.yaml"
 yarn codegen
 yarn build
-yarn remove-local
-yarn create-local
-yarn deploy-local
