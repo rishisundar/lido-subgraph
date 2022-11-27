@@ -858,21 +858,21 @@ export function getDailyUsageSnapshot(event: ethereum.Event): DailyUsageSnapshot
 
 export function updateActiveUniqueUser(event: ethereum.Event) : void {
   let hourlyUsageSnapshot = getHourlyUsageSnapshot(event)
-  hourlyUsageSnapshot.activeUsersCount.plus(ONE)
+  hourlyUsageSnapshot.activeUsersCount = hourlyUsageSnapshot.activeUsersCount.plus(ONE)
   hourlyUsageSnapshot.save()
 
   let dailyUsageSnapshot = getDailyUsageSnapshot(event)
-  dailyUsageSnapshot.activeUsersCount.plus(ONE)
+  dailyUsageSnapshot.activeUsersCount = dailyUsageSnapshot.activeUsersCount.plus(ONE)
   dailyUsageSnapshot.save()
 }
 
 export function updateTransactionCount(event: ethereum.Event) : void {
   let hourlyUsageSnapshot = getHourlyUsageSnapshot(event)
-  hourlyUsageSnapshot.txCount.plus(ONE)
+  hourlyUsageSnapshot.txCount = hourlyUsageSnapshot.txCount.plus(ONE)
   hourlyUsageSnapshot.save()
 
   let dailyUsageSnapshot = getDailyUsageSnapshot(event)
-  dailyUsageSnapshot.txCount.plus(ONE)
+  dailyUsageSnapshot.txCount = dailyUsageSnapshot.txCount.plus(ONE)
   dailyUsageSnapshot.save()
 }
 
