@@ -301,8 +301,7 @@ export function handleTransfer(event: Transfer): void {
 
       stats.uniqueHolders = stats.uniqueHolders!.minus(ONE)
     }
-    updateHourlyUsageStats(event, !holderExists)
-    updateDailyUsageStats(event, !holderExists)
+    updateTransactionCount(event)
     stats.save()
   }
 }
@@ -312,6 +311,7 @@ export function handleApproval(event: Approval): void {
     event.transaction.hash.toHex() + '-' + event.logIndex.toString()
   )
   // TODO: update usage stats
+  updateTransactionCount(event)
 
   entity.owner = event.params.owner
   entity.spender = event.params.spender
@@ -412,6 +412,8 @@ export function handleSubmit(event: Submitted): void {
   }
 
   //TODO: update usage stats
+  updateTransactionCount(event)
+
   entity.sender = event.params.sender
   entity.amount = event.params.amount
   entity.referral = event.params.referral
@@ -488,6 +490,8 @@ export function handleWithdrawal(event: Withdrawal): void {
     event.transaction.hash.toHex() + '-' + event.logIndex.toString()
   )
   //TODO: Handle usage stats
+
+  updateTransactionCount(event)
 
   entity.sender = event.params.sender
   entity.tokenAmount = event.params.tokenAmount
@@ -856,7 +860,7 @@ export function getDailyUsageSnapshot(event: ethereum.Event): DailyUsageSnapshot
   return dailyUsageSnapshot
 }
 
-export function updateActiveUniqueUser(event: ethereum.Event) : void {
+export function updateActiveUniqueUserCount(event: ethereum.Event) : void {
   let hourlyUsageSnapshot = getHourlyUsageSnapshot(event)
   hourlyUsageSnapshot.activeUsersCount = hourlyUsageSnapshot.activeUsersCount.plus(ONE)
   hourlyUsageSnapshot.save()
@@ -878,28 +882,4 @@ export function updateTransactionCount(event: ethereum.Event) : void {
 
 export function updateTVLUSD(event: ethereum.Event) : void {
   
-}
-
-// TODO: Check and remove this method
-export function updateHourlyUsageStats(event: ethereum.Event, isUniqueActiveUser: boolean) : void {
-  let hourlyUsageSnapshot = getHourlyUsageSnapshot(event)
-  hourlyUsageSnapshot.txCount.plus(ONE)
-  // TODO: Update tvlUSD Logic
-  hourlyUsageSnapshot.tvlUSD.plus(event.transaction.value)
-  if(isUniqueActiveUser) {
-    hourlyUsageSnapshot.activeUsersCount.plus(ONE)
-  }
-  hourlyUsageSnapshot.save()
-}
-
-// TODO: Check and remove this method
-export function updateDailyUsageStats(event: ethereum.Event, isUniqueActiveUser: boolean) : void {
-  let dailyUsageSnapshot = getDailyUsageSnapshot(event)
-  dailyUsageSnapshot.txCount.plus(ONE)
-  // TODO: Update tvlUSD Logic
-  dailyUsageSnapshot.tvlUSD.plus(event.transaction.value)
-  if(isUniqueActiveUser) {
-    dailyUsageSnapshot.activeUsersCount.plus(ONE)
-  }
-  dailyUsageSnapshot.save()
 }
