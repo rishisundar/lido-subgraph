@@ -868,14 +868,18 @@ export function getDailyUsageSnapshot(event: ethereum.Event): DailyUsageSnapshot
 export function updateActiveUniqueUserCount(event: ethereum.Event, address: Address) : void {
   let hourlyUsageSnapshot = getHourlyUsageSnapshot(event)
   if (address !== ZERO_ADDRESS && !hourlyUsageSnapshot.activeUsers.includes(address.toHexString())) {
-    hourlyUsageSnapshot.activeUsers.push(address.toHexString())
+    let hourlyActiveUsers = hourlyUsageSnapshot.activeUsers
+    hourlyActiveUsers.push(address.toHexString())
+    hourlyUsageSnapshot.activeUsers = hourlyActiveUsers
     hourlyUsageSnapshot.activeUsersCount = hourlyUsageSnapshot.activeUsersCount.plus(ONE)
     hourlyUsageSnapshot.save()
   }
 
   let dailyUsageSnapshot = getDailyUsageSnapshot(event)
   if (address !== ZERO_ADDRESS && !dailyUsageSnapshot.activeUsers.includes(address.toHexString())) {
-    dailyUsageSnapshot.activeUsers.push(address.toHexString())
+    let dailyActiveUsers = dailyUsageSnapshot.activeUsers
+    dailyActiveUsers.push(address.toHexString())
+    dailyUsageSnapshot.activeUsers = dailyActiveUsers
     dailyUsageSnapshot.activeUsersCount = dailyUsageSnapshot.activeUsersCount.plus(ONE)
     dailyUsageSnapshot.save()
   }
