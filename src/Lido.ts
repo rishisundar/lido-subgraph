@@ -1,4 +1,4 @@
-import { BigInt } from '@graphprotocol/graph-ts'
+import { Address, BigInt } from '@graphprotocol/graph-ts'
 import { store, ethereum } from '@graphprotocol/graph-ts'
 import {
   Stopped,
@@ -301,7 +301,9 @@ export function handleTransfer(event: Transfer): void {
 
       stats.uniqueHolders = stats.uniqueHolders!.minus(ONE)
     }
+    // TODO: update usage stats
     updateTransactionCount(event)
+    updateActiveUniqueUserCount(event, event.params.from)
     stats.save()
   }
 }
@@ -312,6 +314,7 @@ export function handleApproval(event: Approval): void {
   )
   // TODO: update usage stats
   updateTransactionCount(event)
+  updateActiveUniqueUserCount(event, event.params.owner)
 
   entity.owner = event.params.owner
   entity.spender = event.params.spender
@@ -413,8 +416,8 @@ export function handleSubmit(event: Submitted): void {
 
   //TODO: update usage stats
   updateTransactionCount(event)
-
   entity.sender = event.params.sender
+  updateActiveUniqueUserCount(event, event.params.sender)
   entity.amount = event.params.amount
   entity.referral = event.params.referral
 
@@ -492,8 +495,8 @@ export function handleWithdrawal(event: Withdrawal): void {
   //TODO: Handle usage stats
 
   updateTransactionCount(event)
-
   entity.sender = event.params.sender
+  updateActiveUniqueUserCount(event, event.params.sender)
   entity.tokenAmount = event.params.tokenAmount
   entity.sentFromBuffer = event.params.sentFromBuffer // current ETH side
   entity.pubkeyHash = event.params.pubkeyHash // ETH 2.0 side
@@ -837,6 +840,7 @@ export function getHourlyUsageSnapshot(event: ethereum.Event): HourlyUsageSnapsh
     hourlyUsageSnapshot.tvlUSD = ZERO
     hourlyUsageSnapshot.txCount = ZERO
     hourlyUsageSnapshot.activeUsersCount = ZERO
+    hourlyUsageSnapshot.activeUsers = []
   }
 
   hourlyUsageSnapshot.save()
@@ -854,20 +858,27 @@ export function getDailyUsageSnapshot(event: ethereum.Event): DailyUsageSnapshot
     dailyUsageSnapshot.tvlUSD = ZERO
     dailyUsageSnapshot.txCount = ZERO
     dailyUsageSnapshot.activeUsersCount = ZERO
+    dailyUsageSnapshot.activeUsers = []
   }
 
   dailyUsageSnapshot.save()
   return dailyUsageSnapshot
 }
 
-export function updateActiveUniqueUserCount(event: ethereum.Event) : void {
+export function updateActiveUniqueUserCount(event: ethereum.Event, address: Address) : void {
   let hourlyUsageSnapshot = getHourlyUsageSnapshot(event)
-  hourlyUsageSnapshot.activeUsersCount = hourlyUsageSnapshot.activeUsersCount.plus(ONE)
-  hourlyUsageSnapshot.save()
+  if (address !== ZERO_ADDRESS && !hourlyUsageSnapshot.activeUsers.includes(address.toHexString())) {
+    hourlyUsageSnapshot.activeUsers.push(address.toHexString())
+    hourlyUsageSnapshot.activeUsersCount = hourlyUsageSnapshot.activeUsersCount.plus(ONE)
+    hourlyUsageSnapshot.save()
+  }
 
   let dailyUsageSnapshot = getDailyUsageSnapshot(event)
-  dailyUsageSnapshot.activeUsersCount = dailyUsageSnapshot.activeUsersCount.plus(ONE)
-  dailyUsageSnapshot.save()
+  if (address !== ZERO_ADDRESS && !dailyUsageSnapshot.activeUsers.includes(address.toHexString())) {
+    dailyUsageSnapshot.activeUsers.push(address.toHexString())
+    dailyUsageSnapshot.activeUsersCount = dailyUsageSnapshot.activeUsersCount.plus(ONE)
+    dailyUsageSnapshot.save()
+  }
 }
 
 export function updateTransactionCount(event: ethereum.Event) : void {

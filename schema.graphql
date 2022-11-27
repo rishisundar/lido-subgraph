@@ -664,6 +664,8 @@ type HourlyUsageSnapshot @entity {
   txCount: BigInt!
   # Active user count for the hour.
   activeUsersCount: BigInt!
+  # List of active users for the hour
+  activeUsers: [String!]!
 }
 
 type DailyUsageSnapshot @entity {
@@ -679,4 +681,6 @@ type DailyUsageSnapshot @entity {
   txCount: BigInt!
   # Active user count for the day.
   activeUsersCount: BigInt!
+  # List of active users for the day
+  activeUsers: [String!]!
 }
