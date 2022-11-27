@@ -644,7 +644,7 @@ type PauseIntentValidityPeriodBlocksChange @entity(immutable: true) {
 type Protocol @entity {
   id: ID!
   # Total tvl in USD since the beginning
-  tvlUSD: BigInt!
+  tvlUSD: BigDecimal!
   # hourly snapshots of protocol data
   hourlyUsage: [HourlyUsageSnapshot!]! @derivedFrom(field: "protocol")
   # daily snapshots of protocol data
@@ -659,7 +659,7 @@ type HourlyUsageSnapshot @entity {
   # unix timestamp for start of hour.
   periodStartUnix: Int!
   # total value locked as USD.
-  tvlUSD: BigInt!
+  tvlUSD: BigDecimal!
   # Transaction Count.
   txCount: BigInt!
   # Active user count for the hour.
@@ -676,7 +676,7 @@ type DailyUsageSnapshot @entity {
   # timestamp rounded to current day by dividing by 86400.
   date: Int!
   # total value locked as USD.
-  tvlUSD: BigInt!
+  tvlUSD: BigDecimal!
   # Transaction Count.
   txCount: BigInt!
   # Active user count for the day.

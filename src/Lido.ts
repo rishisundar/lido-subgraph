@@ -1,4 +1,4 @@
-import { Address, BigInt } from '@graphprotocol/graph-ts'
+import { Address, BigDecimal, BigInt } from '@graphprotocol/graph-ts'
 import { store, ethereum } from '@graphprotocol/graph-ts'
 import {
   Stopped,
@@ -304,7 +304,7 @@ export function handleTransfer(event: Transfer): void {
     // TODO: update usage stats
     updateTransactionCount(event)
     updateActiveUniqueUserCount(event, event.params.from)
-    updateTotalValueLockedUSD(event, event.params.value)
+    updateTotalValueLockedUSD(event, new BigDecimal(event.params.value))
     stats.save()
   }
 }
@@ -418,7 +418,7 @@ export function handleSubmit(event: Submitted): void {
   //TODO: update usage stats
   updateTransactionCount(event)
   updateActiveUniqueUserCount(event, event.params.sender)
-  updateTotalValueLockedUSD(event, event.params.amount)
+  updateTotalValueLockedUSD(event, new BigDecimal(event.params.amount))
   entity.sender = event.params.sender
   entity.amount = event.params.amount
   entity.referral = event.params.referral
@@ -823,7 +823,7 @@ export function getProtocol(): Protocol {
   let protocol = Protocol.load('')
   if (protocol === null) {
     protocol = new Protocol('')
-    protocol.tvlUSD = ZERO
+    protocol.tvlUSD = ZERO_BIG_DECIMAL
     protocol.save()
   }
   return protocol
@@ -839,7 +839,7 @@ export function getHourlyUsageSnapshot(event: ethereum.Event): HourlyUsageSnapsh
     hourlyUsageSnapshot = new HourlyUsageSnapshot(hourID)
     hourlyUsageSnapshot.protocol = getProtocol().id
     hourlyUsageSnapshot.periodStartUnix = hourIndex
-    hourlyUsageSnapshot.tvlUSD = ZERO
+    hourlyUsageSnapshot.tvlUSD = ZERO_BIG_DECIMAL
     hourlyUsageSnapshot.txCount = ZERO
     hourlyUsageSnapshot.activeUsersCount = ZERO
     hourlyUsageSnapshot.activeUsers = []
@@ -857,7 +857,7 @@ export function getDailyUsageSnapshot(event: ethereum.Event): DailyUsageSnapshot
     dailyUsageSnapshot = new DailyUsageSnapshot(date.toString())
     dailyUsageSnapshot.protocol = getProtocol().id
     dailyUsageSnapshot.date = date
-    dailyUsageSnapshot.tvlUSD = ZERO
+    dailyUsageSnapshot.tvlUSD = ZERO_BIG_DECIMAL
     dailyUsageSnapshot.txCount = ZERO
     dailyUsageSnapshot.activeUsersCount = ZERO
     dailyUsageSnapshot.activeUsers = []
@@ -897,16 +897,21 @@ export function updateTransactionCount(event: ethereum.Event) : void {
   dailyUsageSnapshot.save()
 }
 
-export function updateTotalValueLockedUSD(event: ethereum.Event, tvlAmout: BigInt) : void {
-  if(tvlAmout !== ZERO) {
+export function updateTotalValueLockedUSD(event: ethereum.Event, tvlAmout: BigDecimal) : void {
+  if(tvlAmout !== ZERO_BIG_DECIMAL) {
     let protocol = getProtocol()
     protocol.tvlUSD = protocol.tvlUSD.plus(tvlAmout)
     protocol.save()
     let hourlyUsageSnapshot = getHourlyUsageSnapshot(event)
-    hourlyUsageSnapshot.tvlUSD = hourlyUsageSnapshot.tvlUSD.plus(tvlAmout)
+    hourlyUsageSnapshot.tvlUSD = hourlyUsageSnapshot.tvlUSD.plus(tvlAmout.times(getEthUsdPricePairInfo(event)))
     hourlyUsageSnapshot.save()
     let dailyUsageSnapshot = getDailyUsageSnapshot(event)
     dailyUsageSnapshot.tvlUSD = dailyUsageSnapshot.tvlUSD.plus(tvlAmout)
     dailyUsageSnapshot.save()
   }
+}
+
+export function getEthUsdPricePairInfo(event: ethereum.Event) : BigDecimal {
+  let usdPrice = BigDecimal.fromString("1214.71")
+  return usdPrice
 }
