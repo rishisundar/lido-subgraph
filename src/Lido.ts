@@ -1,6 +1,5 @@
 import { Address, BigInt } from '@graphprotocol/graph-ts'
 import { store, ethereum } from '@graphprotocol/graph-ts'
-import { log } from "matchstick-as/assembly/log";
 import {
   Stopped,
   Resumed,
@@ -823,8 +822,8 @@ export function getProtocol(): Protocol {
   if (protocol === null) {
     protocol = new Protocol('')
     protocol.tvlUSD = ZERO_BIG_DECIMAL
-    protocol.save()
   }
+  protocol.save()
   return protocol
 }
 
@@ -842,8 +841,9 @@ export function getHourlyUsageSnapshot(event: ethereum.Event): HourlyUsageSnapsh
     hourlyUsageSnapshot.txCount = ZERO
     hourlyUsageSnapshot.activeUsersCount = ZERO
     hourlyUsageSnapshot.activeUsers = []
-    hourlyUsageSnapshot.save()
   }
+
+  hourlyUsageSnapshot.save()
   return hourlyUsageSnapshot
 }
 
@@ -859,29 +859,24 @@ export function getDailyUsageSnapshot(event: ethereum.Event): DailyUsageSnapshot
     dailyUsageSnapshot.txCount = ZERO
     dailyUsageSnapshot.activeUsersCount = ZERO
     dailyUsageSnapshot.activeUsers = []
-    dailyUsageSnapshot.save()
   }
+
+  dailyUsageSnapshot.save()
   return dailyUsageSnapshot
 }
 
 export function updateActiveUniqueUserCount(event: ethereum.Event, address: Address) : void {
   let hourlyUsageSnapshot = getHourlyUsageSnapshot(event)
-  log.info("HourlyUsageCount - current known unique users count: ".concat(hourlyUsageSnapshot.activeUsers.length.toString()), [])
-  log.info("HourlyUsageCount - is user unique: ".concat(hourlyUsageSnapshot.activeUsers.includes(address.toHexString()).toString()), [])
   if (address !== ZERO_ADDRESS && !hourlyUsageSnapshot.activeUsers.includes(address.toHexString())) {
     hourlyUsageSnapshot.activeUsers.push(address.toHexString())
     hourlyUsageSnapshot.activeUsersCount = hourlyUsageSnapshot.activeUsersCount.plus(ONE)
-    log.info("HourlyUsageCount - unique user count post update: ".concat(hourlyUsageSnapshot.activeUsers.length.toString()), [])
     hourlyUsageSnapshot.save()
   }
-  
+
   let dailyUsageSnapshot = getDailyUsageSnapshot(event)
-  log.info("DailyUsageCount - current known unique users count: ".concat(dailyUsageSnapshot.activeUsers.length.toString()), [])
-  log.info("DailyUsageCount - is user unique: ".concat(dailyUsageSnapshot.activeUsers.includes(address.toHexString()).toString()), [])
   if (address !== ZERO_ADDRESS && !dailyUsageSnapshot.activeUsers.includes(address.toHexString())) {
     dailyUsageSnapshot.activeUsers.push(address.toHexString())
     dailyUsageSnapshot.activeUsersCount = dailyUsageSnapshot.activeUsersCount.plus(ONE)
-    log.info("DailyUsageCount - unique user count post update: ".concat(hourlyUsageSnapshot.activeUsers.length.toString()), [])
     dailyUsageSnapshot.save()
   }
 }
