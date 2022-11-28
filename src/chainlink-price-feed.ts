@@ -1,74 +1,34 @@
 import {
-  AnswerUpdated as AnswerUpdatedEvent,
   NewRound as NewRoundEvent,
-  OwnershipTransferRequested as OwnershipTransferRequestedEvent,
-  OwnershipTransferred as OwnershipTransferredEvent
 } from "../generated/ChainlinkPriceFeed/ChainlinkPriceFeed"
 import {
-  AnswerUpdated,
   NewRound,
-  OwnershipTransferRequested,
-  OwnershipTransferred
+  RoundsInfo,
 } from "../generated/schema"
 
-export function handleAnswerUpdated(event: AnswerUpdatedEvent): void {
-  let entity = new AnswerUpdated(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.current = event.params.current
-  entity.roundId = event.params.roundId
-  entity.updatedAt = event.params.updatedAt
 
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-
-  entity.save()
+export function getRoundsInfo(): RoundsInfo {
+  let roundInfo = RoundsInfo.load('')
+  if (roundInfo === null) {
+    roundInfo = new RoundsInfo('')
+    roundInfo.save()
+  }
+  return roundInfo
 }
 
 export function handleNewRound(event: NewRoundEvent): void {
-  let entity = new NewRound(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.roundId = event.params.roundId
-  entity.startedBy = event.params.startedBy
-  entity.startedAt = event.params.startedAt
-
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-
-  entity.save()
-}
-
-export function handleOwnershipTransferRequested(
-  event: OwnershipTransferRequestedEvent
-): void {
-  let entity = new OwnershipTransferRequested(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.from = event.params.from
-  entity.to = event.params.to
-
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-
-  entity.save()
-}
-
-export function handleOwnershipTransferred(
-  event: OwnershipTransferredEvent
-): void {
-  let entity = new OwnershipTransferred(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.from = event.params.from
-  entity.to = event.params.to
-
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-
-  entity.save()
+  let newRound = new NewRound(event.params.roundId.toString()) //RoundID here is computed from phaseID and aggregator round ID and won't be duplicate.
+  newRound.roundId = event.params.roundId
+  newRound.startedBy = event.params.startedBy
+  newRound.startedAt = event.params.startedAt
+  newRound.blockNumber = event.block.number
+  newRound.blockTimestamp = event.block.timestamp
+  newRound.transactionHash = event.transaction.hash
+  newRound.save()
+  let roundsInfo = getRoundsInfo()
+  if(!!roundsInfo.currentRound) {
+    roundsInfo.initialRound = newRound.id
+  }
+  roundsInfo.currentRound = newRound.id
+  roundsInfo.save()
 }

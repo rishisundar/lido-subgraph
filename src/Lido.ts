@@ -912,6 +912,27 @@ export function updateTotalValueLockedUSD(event: ethereum.Event, tvlAmout: BigDe
 }
 
 export function getEthUsdPricePairInfo(event: ethereum.Event) : BigDecimal {
-  let usdPrice = BigDecimal.fromString("1214.71")
+  let usdPrice = BigDecimal.fromString("1214.71") //Tempoarary hardcoded ETH / USD price
+  /*
+   * Note:
+   *   The no of decimals for ETH / USD pair is always 8. Ref: https://ethereum.stackexchange.com/questions/90552/does-chainlink-decimal-change-over-time/90602#90602
+   * 
+   * Flow with only On-Chain data:
+   *   1) Maintain nextRound, previousRound in each NewRound entity. We will be making a doubly linked list by storing refs for prev and next
+   *   2) Maintain the global metric on rounds info in RoundsInfo entity.
+   *   3) In RoundsInfo, with currentRound and initialRound, perform binary search by ignoring invalid roundIDs (Can use certain predefined delta to check and come up with a valid round).
+   *   4) At the end of our binary search, we will be having our proper round for our timestamp.
+   *
+   * Flow with External Oracle and On-Chain validation: 
+   *   1) Perform API request to external Oracle and obtain answer round, prev round and next round.
+   *   2) Validate external Oracle data with on-chain data by using below steps:
+   *   3) Ensure that the round order is proper by confirming:
+   *        a) Confirm previous.timeStamp < searchTimestamp
+   *        b) Confirm next.timeStamp > searchTimestamp
+   *   4) There could be gaps in roundID when there is a phase change. Ensure that rounds are not missing by checking for rounds in between:
+   *        a) If the difference in roundID between answer round and previous round is more than 1, then iterate through all possible roundID values and ensure that there are no valid round in between.
+   *        a) If the difference in roundID between answer round and next round is more than 1, then iterate through all possible roundID values and ensure that there are no valid round in between.
+   *   5) If all the above conditions are satisfied, we have the proper round for our timestamp.
+   */
   return usdPrice
 }

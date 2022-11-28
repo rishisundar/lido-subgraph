@@ -696,7 +696,7 @@ type AnswerUpdated @entity(immutable: true) {
 }
 
 type NewRound @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   roundId: BigInt! # uint256
   startedBy: Bytes! # address
   startedAt: BigInt! # uint256
@@ -705,20 +705,8 @@ type NewRound @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
-type OwnershipTransferRequested @entity(immutable: true) {
-  id: Bytes!
-  from: Bytes! # address
-  to: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type OwnershipTransferred @entity(immutable: true) {
-  id: Bytes!
-  from: Bytes! # address
-  to: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+type RoundsInfo @entity {
+  id: String!
+  initialRound: NewRound
+  currentRound: NewRound
 }
