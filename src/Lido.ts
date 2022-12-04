@@ -309,6 +309,8 @@ export function handleTransfer(event: Transfer): void {
       stats.uniqueHolders = stats.uniqueHolders!.minus(ONE)
     }
     // TODO: update usage stats
+    getOrCreateToken(ETH_ADDRESS, event.block.number)
+    getOrCreateToken(LIDO_TOKEN_ADDRESS, event.block.number)
     updateTransactionCount(event)
     updateActiveUniqueUserCount(event, event.params.from)
     updateTotalValueLockedUSD(event, event.params.value)
@@ -321,6 +323,8 @@ export function handleApproval(event: Approval): void {
     event.transaction.hash.toHex() + '-' + event.logIndex.toString()
   )
   // TODO: update usage stats
+  getOrCreateToken(ETH_ADDRESS, event.block.number)
+  getOrCreateToken(LIDO_TOKEN_ADDRESS, event.block.number)
   updateTransactionCount(event)
   updateActiveUniqueUserCount(event, event.params.owner)
 
@@ -423,6 +427,8 @@ export function handleSubmit(event: Submitted): void {
   }
 
   //TODO: update usage stats
+  getOrCreateToken(ETH_ADDRESS, event.block.number)
+  getOrCreateToken(LIDO_TOKEN_ADDRESS, event.block.number)
   updateTransactionCount(event)
   updateActiveUniqueUserCount(event, event.params.sender)
   updateTotalValueLockedUSD(event, event.params.amount)
@@ -502,7 +508,8 @@ export function handleWithdrawal(event: Withdrawal): void {
     event.transaction.hash.toHex() + '-' + event.logIndex.toString()
   )
   //TODO: Handle usage stats
-
+  getOrCreateToken(ETH_ADDRESS, event.block.number)
+  getOrCreateToken(LIDO_TOKEN_ADDRESS, event.block.number)
   updateTransactionCount(event)
   entity.sender = event.params.sender
   updateActiveUniqueUserCount(event, event.params.sender)
