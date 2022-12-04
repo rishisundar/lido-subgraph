@@ -1,6 +1,9 @@
 specVersion: 0.0.4
 schema:
   file: ./schema.graphql
+graft: 
+  base: QmPwYzhd7FbB7qWcS9mUn3ZtfhPRcztUR3wLagxppdYJjQ
+  block: 16111412
 dataSources:
   - kind: ethereum/contract
     name: Lido
