@@ -30,7 +30,7 @@ export function getOrCreateToken(tokenAddress: Address, blockNumber: BigInt): To
           tokenAddress.toHexString(),
           token.name,
           token.symbol,
-          token.decimals
+          token.decimals.toString()
         ])
     }
   }

@@ -17,12 +17,13 @@ export function getTokenPriceFromChainLink(tokenAddress: Address): PriceInfo {
   let result = chainLinkContract.try_latestRoundData(tokenAddress, constants.CHAIN_LINK_USD_ADDRESS)
 
   if (!result.reverted) {
+    log.info("[ChainLinkFeed] Contract call result for tokenAddress({}) : Amount: {}, RoundID: {}, StartedAt: {}, UpdatedAt: {}, AnsweredInRound: {}", [tokenAddress.toHexString(), result.value.value1.toString(), result.value.value0.toString(), result.value.value2.toString(), result.value.value3.toString(), result.value.value4.toString()])
+
     let decimals = chainLinkContract.try_decimals(tokenAddress, constants.CHAIN_LINK_USD_ADDRESS)
 
     if (decimals.reverted) {
       new PriceInfo()
     }
-    log.info("[ChainLinkFeed] Contract call result for tokenAddress({}) : ", [tokenAddress.toHexString(), JSON.stringify(result.value).toString()])
 
     return PriceInfo.initialize(result.value.value1.toBigDecimal(), decimals.value)
   }
