@@ -16,7 +16,7 @@ export function getOrCreateToken(tokenAddress: Address, blockNumber: BigInt): To
   if (!token) {
     token = new Token(tokenId);
 
-    if (tokenAddress == Address.fromString(ETH_ADDRESS)) {
+    if (tokenAddress == ETH_ADDRESS) {
       token.name = ETH_NAME;
       token.symbol = ETH_SYMBOL;
       token.decimals = 18;

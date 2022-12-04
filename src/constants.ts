@@ -51,7 +51,7 @@ export const getOraclePeriod = (): BigInt =>
 Addresses
 **/
 
-export const ZERO_ADDRESS = Address.fromString(
+export const ZERO_ADDRESS = Address.fromHexString(
   '0x0000000000000000000000000000000000000000'
 )
 
@@ -67,16 +67,16 @@ const TREASURY_ADDRESSES = new TypedMap<string, string>()
 TREASURY_ADDRESSES.set('mainnet', '0x3e40D73EB977Dc6a537aF587D48316feE66E9C8c')
 TREASURY_ADDRESSES.set('goerli', '0x4333218072D5d7008546737786663c38B4D561A4')
 
-export const CHAIN_LINK_USD_ADDRESS = Address.fromString("0x0000000000000000000000000000000000000348");
+export const CHAIN_LINK_USD_ADDRESS = Address.fromHexString("0x0000000000000000000000000000000000000348");
 
-export const CHAIN_LINK_CONTRACT_ADDRESS = Address.fromString("0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf");
+export const CHAIN_LINK_CONTRACT_ADDRESS = Address.fromHexString("0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf");
 
 /**
 Token related constants
 **/
-export const LIDO_TOKEN_ADDRESS = Address.fromString("0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84")
+export const LIDO_TOKEN_ADDRESS = Address.fromHexString("0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84") //Same as the one in .env file
 
-export const ETH_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"; //Null Address ref: https://old.reddit.com/r/ethereum/comments/iatr1d/what_is_the_significance_of_this_address/
+export const ETH_ADDRESS = Address.fromHexString("0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE") //Null Address ref: https://old.reddit.com/r/ethereum/comments/iatr1d/what_is_the_significance_of_this_address/
 
 export const ETH_NAME = "Ether"
 

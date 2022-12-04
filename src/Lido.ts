@@ -827,9 +827,9 @@ export function handleTestnetBlock(block: ethereum.Block): void {
 }
 
 export function getProtocol(): Protocol {
-  let protocol = Protocol.load(LIDO_TOKEN_ADDRESS.toString())
+  let protocol = Protocol.load(LIDO_TOKEN_ADDRESS.toHexString())
   if (protocol === null) {
-    protocol = new Protocol(LIDO_TOKEN_ADDRESS.toString())
+    protocol = new Protocol(LIDO_TOKEN_ADDRESS.toHexString())
     protocol.symbol = "LDO"
     protocol.name = "Lido"
     protocol.tvlUSD = ZERO_BIG_DECIMAL
@@ -909,7 +909,7 @@ export function updateTransactionCount(event: ethereum.Event) : void {
 export function updateTotalValueLockedUSD(event: ethereum.Event, amount: BigInt) : void {
   if(amount !== ZERO) {
     let protocol = getProtocol()
-    let lastETHUSDPrice = getOrCreateToken(Address.fromString(ETH_ADDRESS), event.block.number).lastPriceUSD!
+    let lastETHUSDPrice = getOrCreateToken(ETH_ADDRESS, event.block.number).lastPriceUSD!
     protocol.tvlUSD = protocol.tvlUSD.plus(bigIntToBigDecimal(amount).times(lastETHUSDPrice))
     protocol.save()
     let hourlyUsageSnapshot = getHourlyUsageSnapshot(event)
