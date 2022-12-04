@@ -11,6 +11,17 @@ export function getUsdPricePerToken(tokenAddress: Address): PriceInfo {
 
     log.info("[FetchingPrice]Fetching price for tokenAddress: {}", [tokenAddress.toHexString()])
 
+    let chainLinkPrice = getTokenPriceFromChainLink(tokenAddress)
+    if (!chainLinkPrice.reverted) {
+      log.warning("[ChainLinkFeed] tokenAddress: {}, Price: {}", [
+        tokenAddress.toHexString(),
+        chainLinkPrice.usdPrice.div(chainLinkPrice.decimalsBaseTen).toString(),
+      ])
+      return chainLinkPrice
+    }
+
+    log.warning("[FetchingPrice] ChainLink price fetch failed for tokenAddress: {}", [tokenAddress.toHexString()])
+
     let yearnLensPrice = getTokenPriceFromYearnLens(tokenAddress)
     
     if (!yearnLensPrice.reverted) {
@@ -22,14 +33,6 @@ export function getUsdPricePerToken(tokenAddress: Address): PriceInfo {
     }
     log.warning("[FetchingPrice] Yearn Lens price fetch failed for tokenAddress: {}", [tokenAddress.toHexString()])
 
-    let chainLinkPrice = getTokenPriceFromChainLink(tokenAddress)
-    if (!chainLinkPrice.reverted) {
-      log.warning("[ChainLinkFeed] tokenAddress: {}, Price: {}", [
-        tokenAddress.toHexString(),
-        chainLinkPrice.usdPrice.div(chainLinkPrice.decimalsBaseTen).toString(),
-      ])
-      return chainLinkPrice
-    }
   
     log.warning("[FetchingPrice] Failed to Fetch Price, tokenAddress: {}", [tokenAddress.toHexString()])
   
