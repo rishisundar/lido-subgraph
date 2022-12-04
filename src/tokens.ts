@@ -1,70 +1,78 @@
-import { Address, BigInt } from "@graphprotocol/graph-ts";
-import { getUsdPricePerToken } from "./pricing";
+import { Address, BigInt, log } from "@graphprotocol/graph-ts"
+import { getUsdPricePerToken } from "./pricing"
 import {
   ZERO_BIG_DECIMAL,
   ETH_ADDRESS,
   ETH_NAME,
   ETH_SYMBOL,
-} from "./constants";
-import { Lido } from "../generated/Lido/Lido";
-import { Token } from "../generated/schema";
+} from "./constants"
+import { Lido } from "../generated/Lido/Lido"
+import { Token } from "../generated/schema"
 
 export function getOrCreateToken(tokenAddress: Address, blockNumber: BigInt): Token {
-  const tokenId = tokenAddress.toHexString();
-  let token = Token.load(tokenId);
+  const tokenId = tokenAddress.toHexString()
+  let token = Token.load(tokenId)
 
   if (!token) {
-    token = new Token(tokenId);
+    log.info("[ChainLinkFeed] Creating token with tokenAddress: {}", [tokenAddress.toHexString()])
+    token = new Token(tokenId)
 
     if (tokenAddress == ETH_ADDRESS) {
-      token.name = ETH_NAME;
-      token.symbol = ETH_SYMBOL;
-      token.decimals = 18;
+      token.name = ETH_NAME
+      token.symbol = ETH_SYMBOL
+      token.decimals = 18
     } else {
-      token.name = fetchTokenName(tokenAddress);
-      token.symbol = fetchTokenSymbol(tokenAddress);
-      token.decimals = fetchTokenDecimals(tokenAddress) as i32;
+      token.name = fetchTokenName(tokenAddress)
+      token.symbol = fetchTokenSymbol(tokenAddress)
+      token.decimals = fetchTokenDecimals(tokenAddress) as i32
+      log.info("[ChainLinkFeed] Basic token info for tokenAddress ({}): name: {} , symbol: {} & decimals: {}", 
+        [
+          tokenAddress.toHexString(),
+          token.name,
+          token.symbol,
+          token.decimals
+        ])
     }
   }
 
-const price = getUsdPricePerToken(tokenAddress);
+  const price = getUsdPricePerToken(tokenAddress)
   if (price.reverted) {
-    token.lastPriceUSD = ZERO_BIG_DECIMAL;
+    token.lastPriceUSD = ZERO_BIG_DECIMAL
   } else {
-    token.lastPriceUSD = price.usdPrice.div(price.decimalsBaseTen);
+    token.lastPriceUSD = price.usdPrice.div(price.decimalsBaseTen)
   }
-  token.lastPriceBlockNumber = blockNumber;
-  token.save();
+  token.lastPriceBlockNumber = blockNumber
+  token.save()
 
-  return token;
+  return token
 }
 
 function fetchTokenName(tokenAddress: Address): string {
-  const tokenContract = Lido.bind(tokenAddress);
-  const call = tokenContract.try_name();
+  const tokenContract = Lido.bind(tokenAddress)
+  const call = tokenContract.try_name()
   if (call.reverted) {
-    return tokenAddress.toHexString();
+    return tokenAddress.toHexString()
   } else {
-    return call.value;
+    return call.value
   }
 }
 
 function fetchTokenSymbol(tokenAddress: Address): string {
-  const tokenContract = Lido.bind(tokenAddress);
-  const call = tokenContract.try_symbol();
+  const tokenContract = Lido.bind(tokenAddress)
+  const call = tokenContract.try_symbol()
   if (call.reverted) {
-    return " ";
+    return " "
   } else {
-    return call.value;
+    return call.value
   }
 }
 
 function fetchTokenDecimals(tokenAddress: Address): number {
-  const tokenContract = Lido.bind(tokenAddress);
-  const call = tokenContract.try_decimals();
+  const tokenContract = Lido.bind(tokenAddress)
+  const call = tokenContract.try_decimals()
   if (call.reverted) {
-    return 0;
+    return 0
   } else {
-    return call.value;
+    return call.value
   }
 }
