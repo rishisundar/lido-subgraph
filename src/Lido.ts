@@ -1,4 +1,4 @@
-import { Address, BigDecimal, BigInt } from '@graphprotocol/graph-ts'
+import { Address, BigDecimal, BigInt, log } from '@graphprotocol/graph-ts'
 import { store, ethereum } from '@graphprotocol/graph-ts'
 import {
   Stopped,
@@ -57,6 +57,8 @@ import {
   Protocol,
 } from '../generated/schema'
 
+import {getTokenPriceFromChainLink} from './ChainLinkFeeds'
+
 import { loadLidoContract, loadNosContract } from './contracts'
 
 import {
@@ -67,10 +69,15 @@ import {
   ZERO_ADDRESS,
   ZERO_BIG_DECIMAL,
   HOUR_IN_SECONDS,
-  DAY_IN_SECONDS
+  DAY_IN_SECONDS,
+  LIDO_TOKEN_ADDRESS,
+  ETH_ADDRESS
 } from './constants'
 
 import { wcKeyCrops } from './wcKeyCrops'
+import { PriceInfo } from './PriceInfo'
+import { bigIntToBigDecimal } from './utils'
+import { getOrCreateToken } from './tokens'
 
 export function handleStopped(event: Stopped): void {
   let entity = new LidoStopped(
@@ -304,7 +311,7 @@ export function handleTransfer(event: Transfer): void {
     // TODO: update usage stats
     updateTransactionCount(event)
     updateActiveUniqueUserCount(event, event.params.from)
-    updateTotalValueLockedUSD(event, new BigDecimal(event.params.value))
+    updateTotalValueLockedUSD(event, event.params.value)
     stats.save()
   }
 }
@@ -418,7 +425,7 @@ export function handleSubmit(event: Submitted): void {
   //TODO: update usage stats
   updateTransactionCount(event)
   updateActiveUniqueUserCount(event, event.params.sender)
-  updateTotalValueLockedUSD(event, new BigDecimal(event.params.amount))
+  updateTotalValueLockedUSD(event, event.params.amount)
   entity.sender = event.params.sender
   entity.amount = event.params.amount
   entity.referral = event.params.referral
@@ -820,9 +827,11 @@ export function handleTestnetBlock(block: ethereum.Block): void {
 }
 
 export function getProtocol(): Protocol {
-  let protocol = Protocol.load('')
+  let protocol = Protocol.load(LIDO_TOKEN_ADDRESS.toString())
   if (protocol === null) {
-    protocol = new Protocol('')
+    protocol = new Protocol(LIDO_TOKEN_ADDRESS.toString())
+    protocol.symbol = "LDO"
+    protocol.name = "Lido"
     protocol.tvlUSD = ZERO_BIG_DECIMAL
     protocol.save()
   }
@@ -897,42 +906,17 @@ export function updateTransactionCount(event: ethereum.Event) : void {
   dailyUsageSnapshot.save()
 }
 
-export function updateTotalValueLockedUSD(event: ethereum.Event, tvlAmout: BigDecimal) : void {
-  if(tvlAmout !== ZERO_BIG_DECIMAL) {
+export function updateTotalValueLockedUSD(event: ethereum.Event, amount: BigInt) : void {
+  if(amount !== ZERO) {
     let protocol = getProtocol()
-    protocol.tvlUSD = protocol.tvlUSD.plus(tvlAmout)
+    let lastETHUSDPrice = getOrCreateToken(Address.fromString(ETH_ADDRESS), event.block.number).lastPriceUSD!
+    protocol.tvlUSD = protocol.tvlUSD.plus(bigIntToBigDecimal(amount).times(lastETHUSDPrice))
     protocol.save()
     let hourlyUsageSnapshot = getHourlyUsageSnapshot(event)
-    hourlyUsageSnapshot.tvlUSD = hourlyUsageSnapshot.tvlUSD.plus(tvlAmout.times(getEthUsdPricePairInfo(event)))
+    hourlyUsageSnapshot.tvlUSD = hourlyUsageSnapshot.tvlUSD.plus(bigIntToBigDecimal(amount).times(lastETHUSDPrice))
     hourlyUsageSnapshot.save()
     let dailyUsageSnapshot = getDailyUsageSnapshot(event)
-    dailyUsageSnapshot.tvlUSD = dailyUsageSnapshot.tvlUSD.plus(tvlAmout)
+    dailyUsageSnapshot.tvlUSD = dailyUsageSnapshot.tvlUSD.plus(bigIntToBigDecimal(amount).times(lastETHUSDPrice))
     dailyUsageSnapshot.save()
   }
-}
-
-export function getEthUsdPricePairInfo(event: ethereum.Event) : BigDecimal {
-  let usdPrice = BigDecimal.fromString("1214.71") //Tempoarary hardcoded ETH / USD price
-  /*
-   * Note:
-   *   The no of decimals for ETH / USD pair is always 8. Ref: https://ethereum.stackexchange.com/questions/90552/does-chainlink-decimal-change-over-time/90602#90602
-   * 
-   * Flow with only On-Chain data:
-   *   1) Maintain nextRound, previousRound in each NewRound entity. We will be making a doubly linked list by storing refs for prev and next
-   *   2) Maintain the global metric on rounds info in RoundsInfo entity.
-   *   3) In RoundsInfo, with currentRound and initialRound, perform binary search by ignoring invalid roundIDs (Can use certain predefined delta to check and come up with a valid round).
-   *   4) At the end of our binary search, we will be having our proper round for our timestamp.
-   *
-   * Flow with External Oracle and On-Chain validation: 
-   *   1) Perform API request to external Oracle and obtain answer round, prev round and next round.
-   *   2) Validate external Oracle data with on-chain data by using below steps:
-   *   3) Ensure that the round order is proper by confirming:
-   *        a) Confirm previous.timeStamp < searchTimestamp
-   *        b) Confirm next.timeStamp > searchTimestamp
-   *   4) There could be gaps in roundID when there is a phase change. Ensure that rounds are not missing by checking for rounds in between:
-   *        a) If the difference in roundID between answer round and previous round is more than 1, then iterate through all possible roundID values and ensure that there are no valid round in between.
-   *        a) If the difference in roundID between answer round and next round is more than 1, then iterate through all possible roundID values and ensure that there are no valid round in between.
-   *   5) If all the above conditions are satisfied, we have the proper round for our timestamp.
-   */
-  return usdPrice
 }

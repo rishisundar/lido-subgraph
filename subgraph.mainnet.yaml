@@ -28,6 +28,7 @@ dataSources:
         - ELRewardsWithdrawalLimitSet
         - ProtocolContactsSet
         - Protocol
+        - Token
         - DailyUsageSnapshot
         - HourlyUsageSnapshot
         - StakingLimitRemove
@@ -42,6 +43,8 @@ dataSources:
           file: ./abis/Lido.json
         - name: NodeOperatorsRegistry
           file: ./abis/NodeOperatorsRegistry.json
+        - name: ChainLinkContract
+          file: ./abis/ChainLink.json
       eventHandlers:
         - event: Stopped()
           handler: handleStopped

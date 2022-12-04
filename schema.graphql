@@ -645,10 +645,28 @@ type Protocol @entity {
   id: ID!
   # Total tvl in USD since the beginning
   tvlUSD: BigDecimal!
+  symbol: String
+  name: String
   # hourly snapshots of protocol data
   hourlyUsage: [HourlyUsageSnapshot!]! @derivedFrom(field: "protocol")
   # daily snapshots of protocol data
   dailyUsage: [DailyUsageSnapshot!]! @derivedFrom(field: "protocol")
+}
+
+type Token @entity {
+  # Smart contract address of the token
+  id: ID!
+  # Name of the token
+  name: String!
+  # Symbol of the token
+  symbol: String!
+  # The number of decimal places this token uses, default to 18
+  decimals: Int!
+  # Optional field to track the price of a token
+  lastPriceUSD: BigDecimal
+
+  # Optional field to track the block number of the last token price
+  lastPriceBlockNumber: BigInt
 }
 
 type HourlyUsageSnapshot @entity {

@@ -1,4 +1,4 @@
-import { store, crypto } from '@graphprotocol/graph-ts'
+import { store, crypto, BigDecimal } from '@graphprotocol/graph-ts'
 import { BigInt, Address, ByteArray } from '@graphprotocol/graph-ts'
 
 import {
@@ -112,4 +112,13 @@ function toUpper(str: string): string {
     }
   }
   return result
+}
+
+export function bigIntToBigDecimal(number: BigInt, decimals: i32 = 18) : BigDecimal {
+  /*
+   *  Example: 123.32 will be represented as 12332
+   *  Here decimals = 2
+   *  To get the decimal value back, we divide the number by 10 ^ decimals -> 12332 / 10^2 => 12332 / 100 => 123.32 
+   */
+  return number.divDecimal(BigInt.fromI32(10).pow(decimals as u8).toBigDecimal())
 }
