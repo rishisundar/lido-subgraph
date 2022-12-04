@@ -45,6 +45,8 @@ dataSources:
           file: ./abis/NodeOperatorsRegistry.json
         - name: ChainLinkContract
           file: ./abis/ChainLink.json
+        - name: YearnLensContract
+          file: ./abis/YearnLens.json
       eventHandlers:
         - event: Stopped()
           handler: handleStopped

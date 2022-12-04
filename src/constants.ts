@@ -10,6 +10,7 @@ const isMainnet = network == 'mainnet'
 Units
 **/
 
+export const ZERO_I32 = 0
 export const ZERO = BigInt.fromI32(0)
 export const ONE = BigInt.fromI32(1)
 export const ZERO_BIG_DECIMAL = new BigDecimal(ZERO)
@@ -70,6 +71,8 @@ TREASURY_ADDRESSES.set('goerli', '0x4333218072D5d7008546737786663c38B4D561A4')
 export const CHAIN_LINK_USD_ADDRESS = Address.fromString("0x0000000000000000000000000000000000000348")
 
 export const CHAIN_LINK_CONTRACT_ADDRESS = Address.fromString("0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf") //Feed Registry
+
+export const YEARN_LENS_CONTRACT_ADDRESS = Address.fromString("0x83d95e0d5f402511db06817aff3f9ea88224b030") //Yearn Lens Contract
 
 /**
 Token related constants

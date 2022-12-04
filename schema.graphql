@@ -660,7 +660,7 @@ type Token @entity {
   name: String!
   # Symbol of the token
   symbol: String!
-  # The number of decimal places this token uses, default to 18
+  # The number of decimal places this token uses
   decimals: Int!
   # Optional field to track the price of a token
   lastPriceUSD: BigDecimal
