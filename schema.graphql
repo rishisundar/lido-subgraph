@@ -644,6 +644,7 @@ type PauseIntentValidityPeriodBlocksChange @entity(immutable: true) {
 type Protocol @entity {
   id: ID!
   # Total tvl in USD since the beginning
+  totalTokens: BigInt!
   tvlUSD: BigDecimal!
   symbol: String
   name: String

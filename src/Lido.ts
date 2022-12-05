@@ -839,6 +839,7 @@ export function getProtocol(): Protocol {
     protocol = new Protocol(LIDO_TOKEN_ADDRESS.toHexString())
     protocol.symbol = "LDO"
     protocol.name = "Lido"
+    protocol.totalTokens = ZERO
     protocol.tvlUSD = ZERO_BIG_DECIMAL
     protocol.save()
   }
@@ -916,8 +917,9 @@ export function updateTransactionCount(event: ethereum.Event) : void {
 export function updateTotalValueLockedUSD(event: ethereum.Event, amount: BigInt) : void {
   if(amount !== ZERO) {
     let protocol = getProtocol()
+    protocol.totalTokens = protocol.totalTokens.plus(amount)
     let lastETHUSDPrice = getOrCreateToken(ETH_ADDRESS, event.block.number).lastPriceUSD!
-    protocol.tvlUSD = protocol.tvlUSD.plus(bigIntToBigDecimal(amount).times(lastETHUSDPrice))
+    protocol.tvlUSD = (bigIntToBigDecimal(protocol.totalTokens)).times(lastETHUSDPrice)
     protocol.save()
     let hourlyUsageSnapshot = getHourlyUsageSnapshot(event)
     hourlyUsageSnapshot.tvlUSD = hourlyUsageSnapshot.tvlUSD.plus(bigIntToBigDecimal(amount).times(lastETHUSDPrice))
