@@ -8,7 +8,7 @@ dataSources:
     source:
       address: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'
       abi: Lido
-      startBlock: 16110000
+      startBlock: 16050000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -95,7 +95,7 @@ dataSources:
     source:
       address: '0x442af784A788A5bd6F42A01Ebe9F287a871243fb'
       abi: LidoOracle
-      startBlock: 16110000
+      startBlock: 16050000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -152,7 +152,7 @@ dataSources:
     source:
       address: '0x55032650b14df07b85bF18A3a3eC8E0Af2e028d5'
       abi: NodeOperatorsRegistry
-      startBlock: 16110000
+      startBlock: 16050000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -191,7 +191,7 @@ dataSources:
     source:
       address: '0x2e59A20f205bB85a89C53f1936454680651E618e'
       abi: Voting
-      startBlock: 16110000
+      startBlock: 16050000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -231,7 +231,7 @@ dataSources:
     source:
       address: '0xF0211b7660680B49De1A7E9f25C65660F0a13Fea'
       abi: Easytrack
-      startBlock: 13676720
+      startBlock: 160010000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -285,7 +285,7 @@ dataSources:
     source:
       address: '0xDb149235B6F40dC08810AA69869783Be101790e7'
       abi: DepositSecurityModule
-      startBlock: 13492688
+      startBlock: 16001000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
